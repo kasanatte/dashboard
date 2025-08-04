@@ -1,0 +1,46 @@
+# Alternative Dockerfile - uses pre-built binaries approach
+FROM alpine:3.18
+
+# Install ca-certificates and kubectl for cluster operations
+RUN apk add --no-cache ca-certificates curl bash git
+
+# Create non-root user
+RUN addgroup -g 1001 karmada && \
+    adduser -D -u 1001 -G karmada karmada
+
+# Create directories
+RUN mkdir -p /app/bin \
+    && mkdir -p /app/config \
+    && mkdir -p /home/karmada/.kube \
+    && chown -R karmada:karmada /app /home/karmada
+
+# Download pre-built karmada-mcp-server
+RUN curl -L https://github.com/warjiang/karmada-mcp-server/releases/latest/download/karmada-mcp-server-linux-amd64 -o /app/bin/karmada-mcp-server \
+    && chmod +x /app/bin/karmada-mcp-server
+
+# Copy karmada-dashboard binaries (assumes make all has been run)
+COPY _output/bin/linux/amd64/karmada-dashboard /app/bin/karmada-dashboard
+
+# Ensure binaries are executable
+RUN chmod +x /app/bin/karmada-dashboard
+
+# Set environment variables
+ENV KARMADA_MCP_SERVER_PATH=/app/bin/karmada-mcp-server
+ENV KUBECONFIG=/home/karmada/.kube/karmada.config
+ENV PATH=/app/bin:$PATH
+
+# Switch to non-root user
+USER karmada
+
+# Set working directory
+WORKDIR /app
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:8000/api/v1/health || exit 1
+
+# Expose port
+EXPOSE 8000
+
+# Default command - starts both dashboard and MCP server
+CMD ["sh", "-c", "karmada-mcp-server stdio --karmada-kubeconfig=$KUBECONFIG --karmada-context=karmada-apiserver & karmada-dashboard"]

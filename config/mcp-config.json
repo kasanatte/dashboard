@@ -1,0 +1,20 @@
+{
+  "global": {
+    "karmadaKubeConfig": "${HOME}/.kube/karmada.config",
+    "karmadaContext": "karmada-apiserver",
+    "autoDiscovery": true
+  },
+  "mcpServers": {
+    "karmada-mcp-server": {
+      "type": "stdio",
+      "name": "karmada-mcp-server",
+      "command": "karmada-mcp-server",
+      "args": [
+        "stdio",
+        "--karmada-kubeconfig=${HOME}/.kube/karmada.config",
+        "--karmada-context=karmada-apiserver"
+      ],
+      "enabled": true
+    }
+  }
+}

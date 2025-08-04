@@ -1,0 +1,44 @@
+version: '3.8'
+
+services:
+  karmada-dashboard:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - KARMADA_MCP_SERVER_PATH=/app/bin/karmada-mcp-server
+      - KUBECONFIG=/home/karmada/.kube/karmada.config
+    volumes:
+      # Mount your local kubeconfig for cluster access
+      - ~/.kube/karmada.config:/home/karmada/.kube/karmada.config:ro
+      # Optional: Mount custom MCP config
+      # - ./mcp-config.json:/etc/karmada-dashboard/mcp-config.json:ro
+    networks:
+      - karmada-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Optional: Separate MCP server service for debugging
+  karmada-mcp-server:
+    build:
+      context: https://github.com/warjiang/karmada-mcp-server.git
+      dockerfile: Dockerfile
+    environment:
+      - MODE=stdio
+      - KUBECONFIG=/app/config/karmada.config
+    volumes:
+      - ~/.kube/karmada.config:/app/config/karmada.config:ro
+    networks:
+      - karmada-network
+    command: ["stdio", "--karmada-kubeconfig=/app/config/karmada.config", "--karmada-context=karmada-apiserver"]
+
+networks:
+  karmada-network:
+    driver: bridge

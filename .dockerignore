@@ -1,0 +1,52 @@
+# Build artifacts
+_output/
+bin/
+dist/
+
+# Git
+.git/
+.gitignore
+
+# Documentation
+*.md
+docs/
+README*
+CHANGELOG*
+
+# Development
+.env
+.env.local
+.env.*.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Node modules (if any)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Test files
+*_test.go
+*.test
+
+# Logs
+*.log
+logs/
+
+# Temporary files
+tmp/
+temp/
+
+# Cache
+.cache/
+.go-cache/
